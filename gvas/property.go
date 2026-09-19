@@ -63,7 +63,13 @@ type Property struct {
 	// SetBool has actually changed the semantic value, so an unedited
 	// file round-trips byte-for-byte.
 	BoolRaw uint8
-	Str     *string // StrProperty, NameProperty, and EnumProperty (formatted "Type::Value")
+	// Str holds StrProperty/NameProperty/EnumProperty's value (EnumProperty
+	// formatted "Type::Value"), and also ObjectProperty's value when decode
+	// confirmed its bytes are a clean FString — an Unreal object-path
+	// string "<PackagePath>.<AssetName>", or "" for a null reference. An
+	// ObjectProperty whose bytes don't decode cleanly falls back to Raw
+	// instead (see decodeValue in decode.go).
+	Str     *string
 	Int32   *int32
 	Int64   *int64
 	Float32 *float32
@@ -74,7 +80,7 @@ type Property struct {
 	Native *NativeValue // StructProperty, when StructName is a native struct
 	Array  *ArrayValue  // ArrayProperty / SetProperty
 
-	Raw []byte // fallback: ObjectProperty, or any type not specifically decoded
+	Raw []byte // fallback: an ObjectProperty whose bytes weren't a clean FString, or any type not specifically decoded
 
 	// NestedFile is set when Type=="ArrayProperty", Extra.InnerType.Value
 	// =="ByteProperty", and Array.Bytes successfully parsed as another

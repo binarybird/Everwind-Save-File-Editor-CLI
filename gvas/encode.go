@@ -98,6 +98,17 @@ func encodeValue(p *Property) ([]byte, error) {
 		w := NewWriter()
 		w.WriteFString(*p.Str)
 		return w.Bytes(), nil
+	case "ObjectProperty":
+		// Str is populated only when decode confirmed the bytes are a
+		// clean FString (see decodeValue); otherwise this fell back to
+		// Raw and is re-emitted verbatim, same as the ByteProperty
+		// fallback below.
+		if p.Str != nil {
+			w := NewWriter()
+			w.WriteFString(*p.Str)
+			return w.Bytes(), nil
+		}
+		return p.Raw, nil
 	case "IntProperty":
 		if p.Int32 == nil {
 			return nil, fmt.Errorf("IntProperty has no value")

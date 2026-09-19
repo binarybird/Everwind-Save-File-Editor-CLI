@@ -210,6 +210,25 @@ func decodeValue(r *Reader, p *Property, size int) error {
 			return err
 		}
 		p.Struct = children
+	case "ObjectProperty":
+		raw, err := r.ReadBytes(size)
+		if err != nil {
+			return err
+		}
+		// ObjectProperty's value was empirically confirmed (across all
+		// three real save files, 973 occurrences, zero exceptions) to
+		// always be a plain FString: an empty string for a null/unset
+		// reference, or an Unreal object-path string
+		// ("<PackagePath>.<AssetName>") for a populated one. Parse
+		// defensively: only promote to Str if the bytes decode as an
+		// FString that consumes them exactly, so an unrecognized
+		// encoding safely stays as Raw (matching the fallback pattern
+		// used elsewhere in this package for anything not fully proven).
+		if s, ok := parseFStringExact(raw); ok {
+			p.Str = &s
+		} else {
+			p.Raw = raw
+		}
 	case "ArrayProperty", "SetProperty":
 		av, err := decodeArrayValue(r, p.Extra, size)
 		if err != nil {
@@ -240,6 +259,17 @@ func decodeValue(r *Reader, p *Property, size int) error {
 		p.Raw = raw
 	}
 	return nil
+}
+
+// parseFStringExact parses raw as a single FString and reports whether
+// doing so consumed every byte of raw with no leftover and no error.
+func parseFStringExact(raw []byte) (string, bool) {
+	rr := NewReader(raw)
+	s, err := rr.ReadFString()
+	if err != nil || rr.Pos() != len(raw) {
+		return "", false
+	}
+	return s, true
 }
 
 func decodeArrayValue(r *Reader, extra ExtraHeader, size int) (*ArrayValue, error) {
