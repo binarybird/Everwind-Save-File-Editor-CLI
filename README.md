@@ -7,7 +7,11 @@ for this tool's design.
 
 ## Build
 
-    go build ./...
+    go build ./cmd/saveview
+
+(`go build ./...` also works, but only as a "does everything compile"
+check — with more than one package in the module it doesn't leave a
+`saveview` binary behind on its own.)
 
 ## CLI usage
 
@@ -35,3 +39,10 @@ Paths use dot notation for struct fields and `[N]` for array indices, e.g.
 
 Round-trip fidelity (`gvas.Marshal(gvas.Unmarshal(data)) == data`) is
 enforced for all three files in `testdata/` — see `gvas/encode_test.go`.
+
+One known gap: strings are re-encoded as ASCII or UTF-16LE based on the
+*decoded content* (pure-ASCII vs. not), not the encoding actually read from
+the source file, so a string whose source encoding was UTF-16 but whose
+content happens to be representable in pure ASCII will be re-encoded as
+ASCII on `Marshal` — semantically identical, but byte-different from the
+input. This has not been observed in any of the three files in `testdata/`.
