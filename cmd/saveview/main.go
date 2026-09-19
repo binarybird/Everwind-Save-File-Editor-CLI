@@ -32,11 +32,17 @@ func main() {
 			os.Exit(1)
 		}
 	case "json":
-		if len(os.Args) != 3 {
-			fmt.Fprintln(os.Stderr, "usage: saveview json <file>")
+		file, outPath, err := parseJSONArgs(os.Args[2:])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "usage: saveview json <file> [-o out.json]")
 			os.Exit(2)
 		}
-		if err := runJSON(os.Stdout, os.Args[2]); err != nil {
+		if outPath != "" {
+			err = runJSONToFile(file, outPath)
+		} else {
+			err = runJSON(os.Stdout, file)
+		}
+		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
@@ -50,44 +56,11 @@ func main() {
 			os.Exit(1)
 		}
 	case "set":
-		// Parse manually to allow -o flag anywhere in the argument list
-		var file, propPath, rawValue, outPath string
-		var outIdx int
-		var foundOut bool
-
-		// Look for -o flag and its value
-		for i := 2; i < len(os.Args)-1; i++ {
-			if os.Args[i] == "-o" {
-				outPath = os.Args[i+1]
-				foundOut = true
-				outIdx = i
-				break
-			}
-		}
-
-		if !foundOut || outPath == "" {
+		file, propPath, rawValue, outPath, err := parseSetArgs(os.Args[2:])
+		if err != nil {
 			fmt.Fprintln(os.Stderr, "usage: saveview set <file> <path> <value> -o <out>")
 			os.Exit(2)
 		}
-
-		// Collect positional arguments (skip the -o and its value)
-		var args []string
-		for i := 2; i < len(os.Args); i++ {
-			if i == outIdx || i == outIdx+1 {
-				continue
-			}
-			args = append(args, os.Args[i])
-		}
-
-		if len(args) != 3 {
-			fmt.Fprintln(os.Stderr, "usage: saveview set <file> <path> <value> -o <out>")
-			os.Exit(2)
-		}
-
-		file = args[0]
-		propPath = args[1]
-		rawValue = args[2]
-
 		if err := runSet(file, propPath, rawValue, outPath); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
@@ -106,4 +79,59 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
+}
+
+// extractOutFlag scans args for a "-o <value>" pair, which may appear
+// anywhere in the list (not just trailing the positional arguments) --
+// the standard library's flag package doesn't support flags that trail
+// positional arguments, which is exactly saveview's `set`/`json` syntax,
+// so both commands parse their argv by hand. It returns the remaining
+// positional arguments (with "-o" and its value removed, in their
+// original relative order), the flag's value, and whether the flag was
+// present at all. An "-o" with nothing following it is an error, not a
+// panic.
+func extractOutFlag(args []string) (positional []string, outPath string, found bool, err error) {
+	for i := 0; i < len(args); i++ {
+		if args[i] == "-o" {
+			if i+1 >= len(args) {
+				return nil, "", false, fmt.Errorf("-o requires a value")
+			}
+			positional = append(positional, args[:i]...)
+			positional = append(positional, args[i+2:]...)
+			return positional, args[i+1], true, nil
+		}
+	}
+	return args, "", false, nil
+}
+
+// parseJSONArgs parses the arguments following "saveview json", i.e.
+// os.Args[2:]: exactly one positional file argument, plus an optional
+// "-o out.json" pair anywhere in the list. outPath is "" when -o was not
+// given, meaning "write to stdout".
+func parseJSONArgs(args []string) (file, outPath string, err error) {
+	positional, out, _, err := extractOutFlag(args)
+	if err != nil {
+		return "", "", err
+	}
+	if len(positional) != 1 {
+		return "", "", fmt.Errorf("expected exactly one file argument, got %d", len(positional))
+	}
+	return positional[0], out, nil
+}
+
+// parseSetArgs parses the arguments following "saveview set", i.e.
+// os.Args[2:]: exactly three positional arguments (file, path, value)
+// plus a mandatory "-o out" pair anywhere in the list.
+func parseSetArgs(args []string) (file, path, value, outPath string, err error) {
+	positional, out, found, err := extractOutFlag(args)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	if !found || out == "" {
+		return "", "", "", "", fmt.Errorf("an output path (-o) is required")
+	}
+	if len(positional) != 3 {
+		return "", "", "", "", fmt.Errorf("expected exactly 3 positional arguments (file, path, value), got %d", len(positional))
+	}
+	return positional[0], positional[1], positional[2], out, nil
 }
