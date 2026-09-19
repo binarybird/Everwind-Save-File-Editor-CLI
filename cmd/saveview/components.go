@@ -25,7 +25,7 @@ func runComponents(w io.Writer, path string) error {
 	if err != nil {
 		return fmt.Errorf("%s has no top-level Components array: %w", path, err)
 	}
-	if comps.Array == nil || comps.Array.Structs == nil {
+	if comps.Array == nil || comps.Array.InnerType.Value != "StructProperty" {
 		return fmt.Errorf("%s's Components property is not a struct array", path)
 	}
 	fmt.Fprintln(w, "index\tname\tclass\tbytes")
