@@ -92,6 +92,15 @@ func main() {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
+	case "components":
+		if len(os.Args) != 3 {
+			fmt.Fprintln(os.Stderr, "usage: saveview components <file>")
+			os.Exit(2)
+		}
+		if err := runComponents(os.Stdout, os.Args[2]); err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n", os.Args[1])
 		usage()
