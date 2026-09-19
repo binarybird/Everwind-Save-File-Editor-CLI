@@ -19,15 +19,15 @@ type LinearColorFloats struct{ R, G, B, A float32 }
 // or an unexpected byte length, and is always what gets re-encoded when
 // none of the typed fields apply.
 type NativeValue struct {
-	StructName  string
-	Vector      *Vector3
-	IntVector   *IntVector3
-	Rotator     *Rotator3
+	StructName    string
+	Vector        *Vector3
+	IntVector     *IntVector3
+	Rotator       *Rotator3
 	DateTimeTicks *int64
 	TimespanTicks *int64
-	Color       *ColorBytes
-	LinearColor *LinearColorFloats
-	Raw         []byte
+	Color         *ColorBytes
+	LinearColor   *LinearColorFloats
+	Raw           []byte
 }
 
 var nativeStructNames = map[string]bool{
