@@ -67,8 +67,8 @@ type Property struct {
     // MapProperty carry any of this; everything else leaves it nil.
     Extra ExtraHeader
 
-    RawTagGuid []byte    // 16 bytes if a property guid was present, else nil
-    GuidMarker uint8     // preserved verbatim for round-trip; only byte value 1 means RawTagGuid is set
+    Guid       []byte    // 16 bytes if a property guid was present, else nil
+    GuidMarker uint8     // preserved verbatim for round-trip; only byte value 1 means Guid is set
 
     // Exactly one of these is populated, chosen by Type:
     Bool    *bool
@@ -200,6 +200,10 @@ editable yet, not a partial/corrupt write.
 ## Out of scope for this pass
 
 - Adding/removing/reordering properties or array elements.
-- `MapProperty` and `TextProperty` support (never observed populated;
-  will error clearly rather than guess).
+- `MapProperty` and `TextProperty` support beyond opaque pass-through
+  (never observed populated). In practice `MapProperty` is decoded as
+  opaque `Raw` bytes via the same `Size`-driven fallback as any other
+  unrecognized type, which round-trips correctly and doesn't error;
+  `TextProperty` likewise isn't handled specially and falls through to the
+  same `Raw` path.
 - An interactive/TUI browser — `dump`/`json`/`get` cover viewing for now.
