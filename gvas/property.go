@@ -55,7 +55,14 @@ type Property struct {
 	GuidMarker uint8
 	Guid       []byte
 
-	Bool    *bool
+	Bool *bool
+	// BoolRaw is the exact inline byte a BoolProperty was read from (0 =
+	// false, any nonzero = true; both 0x01 and 0x10 have been observed —
+	// see docs/FORMAT.md). Marshal writes BoolRaw back verbatim when it
+	// still agrees with *Bool, and only falls back to canonical 0/1 when
+	// SetBool has actually changed the semantic value, so an unedited
+	// file round-trips byte-for-byte.
+	BoolRaw uint8
 	Str     *string // StrProperty, NameProperty, and EnumProperty (formatted "Type::Value")
 	Int32   *int32
 	Int64   *int64

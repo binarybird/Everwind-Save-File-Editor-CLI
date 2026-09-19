@@ -114,6 +114,7 @@ func readProperty(r *Reader, name string) (*Property, error) {
 		}
 		v := b != 0
 		p.Bool = &v
+		p.BoolRaw = b
 		return p, nil
 	}
 
