@@ -14,15 +14,6 @@ func readTestdata(t *testing.T, name string) []byte {
 	return data
 }
 
-func findProp(props []*Property, name string) *Property {
-	for _, p := range props {
-		if p.Name == name {
-			return p
-		}
-	}
-	return nil
-}
-
 func TestUnmarshalPlayerLocal(t *testing.T) {
 	f, err := Unmarshal(readTestdata(t, "Player_Local.sav"))
 	if err != nil {

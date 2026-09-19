@@ -94,6 +94,15 @@ func Lookup(f *File, path string) (*Property, error) {
 	return current, nil
 }
 
+func findProp(props []*Property, name string) *Property {
+	for _, p := range props {
+		if p.Name == name {
+			return p
+		}
+	}
+	return nil
+}
+
 func arrayElementProps(a *ArrayValue, idx int) ([]*Property, error) {
 	if a.Structs == nil {
 		return nil, fmt.Errorf("array inner type %q has no struct elements to index into", a.InnerType.Value)
