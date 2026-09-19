@@ -123,10 +123,28 @@ func decodeSliceValue(a *ArrayValue, fv reflect.Value) error {
 			out.Index(i).SetInt(int64(v))
 		}
 		fv.Set(out)
+	case reflect.Int64:
+		out := reflect.MakeSlice(fv.Type(), len(a.Int64s), len(a.Int64s))
+		for i, v := range a.Int64s {
+			out.Index(i).SetInt(v)
+		}
+		fv.Set(out)
 	case reflect.Float32:
 		out := reflect.MakeSlice(fv.Type(), len(a.Floats), len(a.Floats))
 		for i, v := range a.Floats {
 			out.Index(i).SetFloat(float64(v))
+		}
+		fv.Set(out)
+	case reflect.Float64:
+		out := reflect.MakeSlice(fv.Type(), len(a.Doubles), len(a.Doubles))
+		for i, v := range a.Doubles {
+			out.Index(i).SetFloat(v)
+		}
+		fv.Set(out)
+	case reflect.Uint8:
+		out := reflect.MakeSlice(fv.Type(), len(a.Bytes), len(a.Bytes))
+		for i, v := range a.Bytes {
+			out.Index(i).SetUint(uint64(v))
 		}
 		fv.Set(out)
 	case reflect.Struct:
