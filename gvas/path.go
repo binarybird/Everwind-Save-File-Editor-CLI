@@ -30,17 +30,17 @@ func parsePath(path string) ([]pathSegment, error) {
 			if open < 0 {
 				break
 			}
-			close := strings.IndexByte(name[open:], ']')
-			if close < 0 {
+			closeIdx := strings.IndexByte(name[open:], ']')
+			if closeIdx < 0 {
 				return nil, fmt.Errorf("gvas: unclosed '[' in path segment %q", dotPart)
 			}
-			close += open
-			idx, err := strconv.Atoi(name[open+1 : close])
+			closeIdx += open
+			idx, err := strconv.Atoi(name[open+1 : closeIdx])
 			if err != nil {
 				return nil, fmt.Errorf("gvas: invalid array index in %q: %w", dotPart, err)
 			}
 			indices = append(indices, idx)
-			name = name[:open] + name[close+1:]
+			name = name[:open] + name[closeIdx+1:]
 		}
 		segs = append(segs, pathSegment{Name: name})
 		for _, idx := range indices {
