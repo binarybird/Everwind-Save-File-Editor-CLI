@@ -1,6 +1,7 @@
 package gvas
 
 import (
+	"bytes"
 	"os"
 	"testing"
 )
@@ -130,5 +131,54 @@ func TestUnmarshalTruncatedInputErrors(t *testing.T) {
 	_, err := Unmarshal(full[:100])
 	if err == nil {
 		t.Fatal("expected an error decoding a truncated file, got nil")
+	}
+}
+
+// TestNestedBlobFalsePositiveNotPromoted builds a synthetic save file whose
+// only property is an ArrayProperty<ByteProperty> with a 9-byte payload
+// (00 00000000 AABBCCDD) that *parses* as a valid nested [header][empty
+// property list][footer] blob -- because readPropertyList accepts an empty
+// FString ("") as a list terminator, not just "None" -- but does not
+// round-trip, since writePropertyList always writes a real "None"
+// terminator on re-encode. Promoting this to NestedFile would silently
+// corrupt the byte array on the next Marshal. See gvas/decode.go's
+// ArrayProperty/SetProperty handling in decodeValue.
+func TestNestedBlobFalsePositiveNotPromoted(t *testing.T) {
+	payload := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0xAA, 0xBB, 0xCC, 0xDD}
+
+	w := NewWriter()
+	w.WriteU8(0) // top-level header byte
+
+	// The one property: an ArrayProperty<ByteProperty> named "TestArr".
+	w.WriteFString("TestArr")
+	w.WriteFString("ArrayProperty")
+	w.WriteFName(FName{Value: "ByteProperty"})
+	w.WriteI32(0) // ArrayIndex
+
+	valueW := NewWriter()
+	valueW.WriteI32(int32(len(payload))) // array element count
+	valueW.WriteBytes(payload)
+	value := valueW.Bytes()
+
+	w.WriteI32(int32(len(value))) // Size
+	w.WriteU8(0)                  // GuidMarker (none)
+	w.WriteBytes(value)
+
+	w.WriteFString("None")           // property-list terminator
+	w.WriteBytes([]byte{0, 0, 0, 0}) // top-level footer
+
+	f, err := Unmarshal(w.Bytes())
+	if err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	p := findProp(f.Root, "TestArr")
+	if p == nil || p.Array == nil {
+		t.Fatalf("TestArr: got %+v", p)
+	}
+	if p.NestedFile != nil {
+		t.Errorf("NestedFile should not be promoted for a false-positive nested parse, got %+v", p.NestedFile)
+	}
+	if !bytes.Equal(p.Array.Bytes, payload) {
+		t.Errorf("Array.Bytes = %x, want unchanged %x", p.Array.Bytes, payload)
 	}
 }

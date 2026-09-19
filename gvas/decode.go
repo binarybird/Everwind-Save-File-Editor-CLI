@@ -1,10 +1,17 @@
 package gvas
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // Unmarshal decodes a Skyverse .sav buffer (or an embedded nested blob of
 // the same shape) into a File. See docs/FORMAT.md for the full format
 // this implements.
+//
+// Decoded []byte fields (Property.Raw, Property.Guid, ArrayValue.Bytes,
+// File.Footer) are subslices of data and alias it rather than being
+// copied; callers who mutate data after calling Unmarshal should be aware.
 func Unmarshal(data []byte) (*File, error) {
 	r := NewReader(data)
 	header, err := r.ReadU8()
@@ -210,8 +217,19 @@ func decodeValue(r *Reader, p *Property, size int) error {
 		}
 		p.Array = av
 		if p.Extra.InnerType.Value == "ByteProperty" {
+			// Only promote a nested parse if it provably round-trips: some
+			// byte blobs (e.g. a 9-byte payload whose int32=0 field reads
+			// as an empty-string property-list terminator) parse as a
+			// valid-looking but wrong property list, since readPropertyList
+			// accepts both "None" and "" as terminators while
+			// writePropertyList always writes "None". Re-marshaling such a
+			// false positive would silently produce different bytes than
+			// the input. See gvas/decode_test.go,
+			// TestNestedBlobFalsePositiveNotPromoted.
 			if nested, err := Unmarshal(av.Bytes); err == nil {
-				p.NestedFile = nested
+				if back, err2 := Marshal(nested); err2 == nil && bytes.Equal(back, av.Bytes) {
+					p.NestedFile = nested
+				}
 			}
 		}
 	default:
