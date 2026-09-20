@@ -21,9 +21,10 @@ silently corrupts or reformats anything else in the file.
   (32/64-bit) can be set by path, including item references
   (`ObjectProperty` fields like a slot's equipped item).
 - **Insert/remove struct-array elements.** Used by the companion
-  [`skyverse-save-web`](../skyverse-save-web) project to add or remove
-  items from inventory slots — `AppendStructElement`/
-  `RemoveStructElement` on any `StructProperty`-inner array.
+  [`Everwind-Save-File-Editor-Web-UI`](https://github.com/binarybird/Everwind-Save-File-Editor-Web-UI/)
+  project to add or remove items from inventory slots —
+  `AppendStructElement`/`RemoveStructElement` on any
+  `StructProperty`-inner array.
 - **Generate the `.meta` checksum sidecar** a save needs to actually be
   accepted by the game (see "Why the `.meta` file matters" below).
 
