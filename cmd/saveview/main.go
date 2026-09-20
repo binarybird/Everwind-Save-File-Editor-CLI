@@ -13,7 +13,8 @@ Usage:
   saveview json <file> [-o out.json]
   saveview get <file> <path>
   saveview set <file> <path> <value> -o <out>
-  saveview components <file>`)
+  saveview components <file>
+  saveview meta <file> [-o out.meta]`)
 }
 
 func main() {
@@ -71,6 +72,16 @@ func main() {
 			os.Exit(2)
 		}
 		if err := runComponents(os.Stdout, os.Args[2]); err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
+		}
+	case "meta":
+		positional, outPath, _, err := extractOutFlag(os.Args[2:])
+		if err != nil || len(positional) != 1 {
+			fmt.Fprintln(os.Stderr, "usage: saveview meta <file> [-o out.meta]")
+			os.Exit(2)
+		}
+		if err := runMeta(os.Stdout, positional[0], outPath); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
