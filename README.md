@@ -20,10 +20,18 @@ check — with more than one package in the module it doesn't leave a
     saveview get <file> <path>                # read one property
     saveview set <file> <path> <value> -o out # write an edited copy
     saveview components <file>                # summary of placed components
+    saveview meta <file> [-o out.meta]        # write the .meta checksum sidecar
 
 Paths use dot notation for struct fields and `[N]` for array indices, e.g.
 `Components[3].Data.ComponentName`. `set` never modifies the input file —
 `-o` is required.
+
+The game checks each `.sav` against a `<file>.sav.meta` sidecar (its
+CRC32 checksum, as plain decimal text) on load, and silently reverts to
+its own `.backup` if they don't match — so after editing a save with
+`set` (or any other tool), regenerate its sidecar with `meta` too, or
+the game will discard the edit. `meta` defaults to writing
+`<file>.meta` alongside the input; `-o` overrides the output path.
 
 ## Library usage
 
