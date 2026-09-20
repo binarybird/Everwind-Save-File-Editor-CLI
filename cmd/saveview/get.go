@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 func runGet(w io.Writer, path, propPath string) error {

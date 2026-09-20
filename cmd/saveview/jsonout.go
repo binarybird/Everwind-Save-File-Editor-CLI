@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 // jsonProp is the JSON projection of a gvas.Property: enough to be useful

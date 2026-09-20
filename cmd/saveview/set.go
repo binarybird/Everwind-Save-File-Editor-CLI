@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 // runSet loads path, resolves propPath, parses rawValue against that

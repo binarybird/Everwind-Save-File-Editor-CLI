@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 func TestRunSetString(t *testing.T) {

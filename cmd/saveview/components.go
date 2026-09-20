@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 // runComponents prints a one-line-per-component summary of a player save's

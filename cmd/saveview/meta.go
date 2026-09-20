@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"skyversesave/gvas"
+	"github.com/binarybird/Everwind-Save-File-Editor-CLI/gvas"
 )
 
 // runMeta computes path's ".meta" sidecar content (see
